@@ -21,7 +21,8 @@ class PostListSerializer(ModelSerializer):
 		"title",
 		"slug",
 		"content",
-		"publish"
+		"publish",
+		"user"
 		]
 
 class PostDetailSerializer(ModelSerializer):
