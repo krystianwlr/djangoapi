@@ -67,3 +67,4 @@ LICENSE
 README.md
 blog.sublime-workspace
 .DS_Store
+db.sqlite3
