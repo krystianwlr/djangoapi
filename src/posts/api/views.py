@@ -14,8 +14,6 @@ from rest_framework.generics import (
 	RetrieveUpdateAPIView
 	)
 
-
-
 from rest_framework.permissions import (
 	AllowAny,
 	IsAuthenticated,
@@ -23,6 +21,8 @@ from rest_framework.permissions import (
 	IsAuthenticatedOrReadOnly,
 
 	)
+
+from posts.api.pagination import PostLimitOffsetPagination, PostPageNumberPagination
 
 from posts.api.permissions import IsOwnerOrReadOnly
 
@@ -64,7 +64,7 @@ class PostUpdateAPIView(RetrieveUpdateAPIView):
 class PostDeleteAPIView(DestroyAPIView):
 	queryset = Post.objects.all()
 	serializer_class = PostDetailSerializer
-	permission_classes = [IsAuthenticated]
+	permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
 
 class PostListAPIView(ListAPIView):
@@ -72,6 +72,8 @@ class PostListAPIView(ListAPIView):
 	serializer_class = PostListSerializer
 	filter_backends = [SearchFilter, OrderingFilter]
 	search_fields = ['title', 'content', 'user__first_name']
+	pagination_class = PostLimitOffsetPagination
+
 
 	def get_queryset(self, *args, **kwargs):
 		queryset_list = Post.objects.all()
