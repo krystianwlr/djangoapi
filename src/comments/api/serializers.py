@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth import get_user_model
 
 from rest_framework.serializers import (
 	ModelSerializer,
@@ -9,21 +10,22 @@ from rest_framework.serializers import (
 
 from comments.models import Comment
 
-def create_comment_serializer(model_type="post", slug="None", parent_id="None"):
-	class CommentCreateSerializer():
+User = get_user_model()
+
+def create_comment_serializer(model_type="post", slug=None, parent_id=None, user=None):
+	class CommentCreateSerializer(ModelSerializer):
 		class Meta:
 			model = Comment
 			fields = [
 				"id",
 				"content",
-				"parent",
 				"timestamp",
 				]
 		def __init__(self, *args, **kwargs):
 			self.model_type = model_type
 			self.slug = slug
 			self.parent_obj = None
-			if self.parent_id:
+			if parent_id:
 				parent_qs = Comment.objects.filter(id=parent_id)
 				if parent_qs.exists() and parent_qs.count() == 1:
 					self.parent_obj = parent_qs.first()
@@ -39,6 +41,25 @@ def create_comment_serializer(model_type="post", slug="None", parent_id="None"):
 			if not obj_qs.exists() or obj_qs.count() != 1:
 				raise ValidationError("This is not a valid slug for this model")
 			return data
+
+		def create(self, validated_data):
+			content = validated_data.get("content")
+			if user:
+				main_user = user
+			else:
+				main_user = User.objects.all().first()
+			model_type = self.model_type
+			slug = self.slug
+			content = self.content
+			parent_obj = self.parent_obj
+			comment = Comment.objects.create_by_model_type(
+				model_type, slug, content, main_user,
+				parent_obj=parent_obj,
+				)
+			return comment
+
+	return CommentCreateSerializer
+
 
 
 
